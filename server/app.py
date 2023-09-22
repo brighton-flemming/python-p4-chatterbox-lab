@@ -43,9 +43,39 @@ def messages():
         db.session.add(new_message)
         db.session.commit()
 
-@app.route('/messages/<int:id>')
+@app.route('/messages/<int:id>', methods=['GET', 'PATCH', 'DELETE'])
 def messages_by_id(id):
-    return ''
+    message = Message.query.filter(Message.id == id).first()
+
+    if message == None:
+        response_body = {
+            "note": "The message you seek is currently absent. Please try again never."
+        }
+        response = make_response(response_body, 404)
+
+        return response
+    else:
+        if request.method == 'GET':
+            message_dict = {
+                "id": message.id,
+                "body": message.body,
+                "username": message.username,
+                "created_at": message.created_at, 
+                "updated_at": message.updated_at
+            }
+            message.append(message_dict)
+
+            response = make_response(
+                message, 200
+            )
+
+            return response
+        elif request.method == 'PATCH':
+            for body in request.form:
+                setattr(message, body, request.form.get(body))
+            
+            db.session.add(message)
+            db.session.commit()
 
 
 
