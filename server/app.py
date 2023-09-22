@@ -76,6 +76,20 @@ def messages_by_id(id):
             
             db.session.add(message)
             db.session.commit()
+        
+        elif request.method == 'DELETE':
+            db.session.delete(message)
+            db.session.commit()
+
+            response_body = {
+                "delete_successful": True,
+                "note":"Message deleted."
+            }
+            response = make_response(
+                response_body, 200
+            )
+
+            return response
 
 
 
