@@ -18,7 +18,7 @@ db.init_app(app)
 def messages():
     if request.method == 'GET':
        messages = []
-       for message in Message.query.all():
+       for message in Message.query.asc().all():
             message_dict = {
                 "id": message.id,
                 "body": message.body,
@@ -90,7 +90,6 @@ def messages_by_id(id):
             )
 
             return response
-
 
 
 if __name__ == '__main__':
