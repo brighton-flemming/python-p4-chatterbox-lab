@@ -18,9 +18,35 @@ db.init_app(app)
 def messages():
     return ''
 
-@app.route('/messages/<int:id>')
+@app.route('/messages/<int:id>', methods=['GET', 'POST'])
 def messages_by_id(id):
-    return ''
+
+    if request.method == 'GET':
+        messages = []
+        for message in Message.query.all():
+            message_dict = {
+                "id": message.id,
+                "body": message.body,
+                "username": message.username,
+                "created_at": message.created_at, 
+                "updated_at": message.updated_at
+            } 
+            messages.append(message_dict)
+
+            response = make_response(
+                messages, 200
+            )
+
+            return response
+        
+    elif request.method == 'POST':
+        new_message = Message(
+            username=request.form.get("username"),
+            body=request.form.get("body"),
+        )
+
+        db.session.add(new_message)
+        db.session.commit()
 
 if __name__ == '__main__':
     app.run(port=5555)
