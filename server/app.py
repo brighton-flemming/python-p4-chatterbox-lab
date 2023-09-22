@@ -14,16 +14,11 @@ migrate = Migrate(app, db)
 
 db.init_app(app)
 
-@app.route('/messages')
+@app.route('/messages', methods=['GET', 'POST'])
 def messages():
-    return ''
-
-@app.route('/messages/<int:id>', methods=['GET', 'POST'])
-def messages_by_id(id):
-
     if request.method == 'GET':
-        messages = []
-        for message in Message.query.all():
+       messages = []
+       for message in Message.query.all():
             message_dict = {
                 "id": message.id,
                 "body": message.body,
@@ -47,6 +42,12 @@ def messages_by_id(id):
 
         db.session.add(new_message)
         db.session.commit()
+
+@app.route('/messages/<int:id>')
+def messages_by_id(id):
+    return ''
+
+
 
 if __name__ == '__main__':
     app.run(port=5555)
