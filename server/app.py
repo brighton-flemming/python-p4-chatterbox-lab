@@ -29,19 +29,42 @@ def messages():
             messages.append(message_dict)
 
             response = make_response(
-                messages, 200
+                jsonify(messages), 200
             )
 
             return response
         
     elif request.method == 'POST':
-        new_message = Message(
-            username=request.form.get("username"),
-            body=request.form.get("body"),
-        )
+        # new_message = Message(
+        #     username=request.form.get("username"),
+        #     body=request.form.get("body"),
+        # )
 
-        db.session.add(new_message)
-        db.session.commit()
+        # db.session.add(new_message)
+        # db.session.commit()
+
+        username = request.form.get("username")
+        body = request.form.get("body")
+
+        # Check if a message with the same username already exists
+        existing_message = Message.query.filter_by(username=username).first()
+
+        if existing_message:
+            # Handle the case where a message with the same username exists (e.g., update or reject)
+            existing_message.body = body
+            db.session.commit()
+        else:
+            # Insert the new message since there is no existing message with the same username
+            new_message = Message(username=username, body=body)
+            db.session.add(new_message)
+            db.session.commit()
+
+        response_body = {
+            "message": "Message created or updated successfully."
+        }
+        response = make_response(jsonify(response_body), 200)
+        return response
+
 
 @app.route('/messages/<int:id>', methods=['GET', 'PATCH', 'DELETE'])
 def messages_by_id(id):
@@ -51,7 +74,7 @@ def messages_by_id(id):
         response_body = {
             "note": "The message you seek is currently absent. Please try again never."
         }
-        response = make_response(response_body, 404)
+        response = make_response(jsonify(response_body), 404)
 
         return response
     else:
@@ -66,16 +89,37 @@ def messages_by_id(id):
             message.append(message_dict)
 
             response = make_response(
-                message, 200
+                jsonify(message), 200
             )
 
             return response
         elif request.method == 'PATCH':
-            for body in request.form:
-                setattr(message, body, request.form.get(body))
+            # for body in request.form:
+            #     setattr(message, body, request.form.get(body))
             
-            db.session.add(message)
-            db.session.commit()
+            # db.session.add(message)
+            # db.session.commit()
+
+            for field in request.form:
+             if field != 'username':  # Skip updating the username field
+                    setattr(message, field, request.form.get(field))
+
+            # Handle updating the username separately
+                    new_username = request.form.get("username")
+            if new_username != message.username:
+                # Check if a message with the new username already exists
+                existing_message = Message.query.filter_by(username=new_username).first()
+                if existing_message:
+                    response_body = {
+                        "error": "Username already exists."
+                    }
+                    response = make_response(jsonify(response_body), 400)
+                    return response
+                else:
+                    message.username = new_username
+
+                db.session.add(message)
+                db.session.commit()
         
         elif request.method == 'DELETE':
             db.session.delete(message)
@@ -86,7 +130,7 @@ def messages_by_id(id):
                 "note":"Message deleted."
             }
             response = make_response(
-                response_body, 200
+                jsonify(response_body), 200
             )
 
             return response
