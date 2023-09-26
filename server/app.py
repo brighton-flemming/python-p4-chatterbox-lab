@@ -18,7 +18,7 @@ db.init_app(app)
 def messages():
     if request.method == 'GET':
        messages = []
-       for message in Message.query.asc().all():
+       for message in Message.query.order_by('created_at').all():
             message_dict = {
                 "id": message.id,
                 "body": message.body,
@@ -35,26 +35,19 @@ def messages():
             return response
         
     elif request.method == 'POST':
-        # new_message = Message(
-        #     username=request.form.get("username"),
-        #     body=request.form.get("body"),
-        # )
-
-        # db.session.add(new_message)
-        # db.session.commit()
 
         username = request.form.get("username")
         body = request.form.get("body")
 
-        # Check if a message with the same username already exists
+      
         existing_message = Message.query.filter_by(username=username).first()
 
         if existing_message:
-            # Handle the case where a message with the same username exists (e.g., update or reject)
+            
             existing_message.body = body
             db.session.commit()
         else:
-            # Insert the new message since there is no existing message with the same username
+           
             new_message = Message(username=username, body=body)
             db.session.add(new_message)
             db.session.commit()
@@ -94,20 +87,13 @@ def messages_by_id(id):
 
             return response
         elif request.method == 'PATCH':
-            # for body in request.form:
-            #     setattr(message, body, request.form.get(body))
-            
-            # db.session.add(message)
-            # db.session.commit()
 
             for field in request.form:
-             if field != 'username':  # Skip updating the username field
+             if field != 'username':  
                     setattr(message, field, request.form.get(field))
 
-            # Handle updating the username separately
                     new_username = request.form.get("username")
             if new_username != message.username:
-                # Check if a message with the new username already exists
                 existing_message = Message.query.filter_by(username=new_username).first()
                 if existing_message:
                     response_body = {
@@ -137,4 +123,5 @@ def messages_by_id(id):
 
 
 if __name__ == '__main__':
-    app.run(port=5555)
+    app.run(port=3000)
+
